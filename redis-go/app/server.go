@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
+	"strings"
 )
 
 func main() {
@@ -36,7 +38,21 @@ func handleRequest(conn net.Conn) {
 			log.Fatal("Error reading data: ", err.Error())
 		}
 
-		_, err = conn.Write([]byte("+PONG\r\n"))
+		args := strings.Split(string(buf), "\r\n")
+
+		command := args[2]
+		var msg string
+		switch command {
+		case "ping":
+			msg += "+PONG\r\n"
+		case "echo":
+			text := args[4]
+			msg += fmt.Sprintf("+%s\r\n", text)
+		default:
+			msg += fmt.Sprintf("-ERR unknown command '%s'\r\n", command)
+		}
+
+		_, err = conn.Write([]byte(msg))
 		if err != nil {
 			log.Fatal("Error writing response: ", err.Error())
 		}
