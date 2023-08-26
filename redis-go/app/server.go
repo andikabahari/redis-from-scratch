@@ -25,6 +25,16 @@ func main() {
 	}
 }
 
+var cached map[string]string = make(map[string]string)
+
+func set(key, value string) {
+	cached[key] = value
+}
+
+func get(key string) string {
+	return cached[key]
+}
+
 func handleRequest(conn net.Conn) {
 	buf := make([]byte, 512)
 	for {
@@ -48,6 +58,15 @@ func handleRequest(conn net.Conn) {
 		case "echo":
 			text := args[4]
 			msg += fmt.Sprintf("+%s\r\n", text)
+		case "set":
+			key := args[4]
+			value := args[6]
+			set(key, value)
+			msg += "+OK\r\n"
+		case "get":
+			key := args[4]
+			value := get(key)
+			msg += fmt.Sprintf("+%s\r\n", value)
 		default:
 			msg += fmt.Sprintf("-ERR unknown command '%s'\r\n", command)
 		}
